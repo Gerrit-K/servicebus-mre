@@ -28,9 +28,9 @@ def get_sender(connection_string, queue_name):
             queue_name) as sender:
         def send_message(m):
             message = ServiceBusMessage(body=json.dumps(m, default=lambda o: o.__dict__))
-            logger.info(f'Sending message {message}')
+            logger.info(f'Sending message {m}')
             start = timeit.default_timer()
             sender.send_messages(message)
-            logger.info(f'Sent message {message} in {timeit.default_timer() - start}s')
+            logger.info(f'Sent message {m} in {timeit.default_timer() - start}s')
 
         yield send_message
