@@ -32,7 +32,7 @@ def parse_args():
 def produce_messages(connection_string, queue_name):
     with get_sender(connection_string, queue_name) as send:
         while True:
-            test = {'id': str(uuid.uuid4()), 'ts': datetime.now(tz=timezone.utc).isoformat().replace("+00:00", "Z")}
+            test = {'id': str(uuid.uuid4()), 'ts': float(datetime.now(tz=timezone.utc).timestamp())}
             send(test)
             time.sleep(1)
 
