@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${MODE}
+  labels:
+    app.kubernetes.io/name: ${MODE}
+    app.kubernetes.io/part-of: ${APP_NAME}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ${MODE}
+      app.kubernetes.io/part-of: ${APP_NAME}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ${MODE}
+        app.kubernetes.io/part-of: ${APP_NAME}
+    spec:
+      containers:
+        - name: ${MODE}
+          image: ${IMAGE}
+          imagePullPolicy: Always
+          args:
+            - ${MODE}
+          env:
+            - name: CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  key: data
+                  name: service-bus-connection-string
+            - name: QUEUE_NAME
+              value: ${QUEUE_NAME}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+      restartPolicy: Always
+      securityContext:
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
