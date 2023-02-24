@@ -1,5 +1,6 @@
 import json
 import logging
+import timeit
 from contextlib import contextmanager
 
 from azure.servicebus import AutoLockRenewer, ServiceBusClient, ServiceBusMessage
@@ -12,10 +13,13 @@ def get_receiver(connection_string, queue_name):
             max_lock_renewal_duration=5 * 60, max_workers=1) as auto_lock_renewer, client.get_queue_receiver(
         queue_name=queue_name, auto_lock_renewer=auto_lock_renewer) as receiver:
         def receive_message():
+            logger.info(f'Receiving message')
+            start = timeit.default_timer()
             messages = receiver.receive_messages()
+            stop = timeit.default_timer()
             if messages:
                 message = json.loads(str(messages[0]))
-                logger.info(f"Received message {message}")
+                logger.info(f"Received message {message} in {stop - start}s")
                 receiver.complete_message(messages[0])
                 return message
 
@@ -28,7 +32,9 @@ def get_sender(connection_string, queue_name):
         def send_message(m):
             message = ServiceBusMessage(body=json.dumps(m, default=lambda o: o.__dict__))
             logger.info(f'Sending message {m}')
+            start = timeit.default_timer()
             sender.send_messages(message)
-            logger.info(f'Sent message {m}')
+            stop = timeit.default_timer()
+            logger.info(f'Sent message {m} in {stop - start}s')
 
         yield send_message
