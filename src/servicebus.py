@@ -3,15 +3,14 @@ import logging
 import timeit
 from contextlib import contextmanager
 
-from azure.servicebus import AutoLockRenewer, ServiceBusClient, ServiceBusMessage
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 logger = logging.getLogger(__name__)
 
 @contextmanager
 def get_receiver(connection_string, queue_name):
-    with ServiceBusClient.from_connection_string(connection_string) as client, AutoLockRenewer(
-            max_lock_renewal_duration=5 * 60, max_workers=1) as auto_lock_renewer, client.get_queue_receiver(
-        queue_name=queue_name, auto_lock_renewer=auto_lock_renewer) as receiver:
+    with ServiceBusClient.from_connection_string(connection_string) as client, client.get_queue_receiver(
+            queue_name=queue_name) as receiver:
         def receive_message():
             logger.info(f'Receiving message')
             start = timeit.default_timer()
@@ -24,6 +23,7 @@ def get_receiver(connection_string, queue_name):
                 return message
 
         yield receive_message
+
 
 @contextmanager
 def get_sender(connection_string, queue_name):
